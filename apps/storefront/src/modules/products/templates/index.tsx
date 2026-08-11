@@ -1,70 +1,37 @@
 import React, { Suspense } from "react"
-
+import { notFound } from "next/navigation"
+import { HttpTypes } from "@medusajs/types"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ImageGallery from "@modules/products/components/image-gallery"
 import ProductActions from "@modules/products/components/product-actions"
-import ProductOnboardingCta from "@modules/products/components/product-onboarding-cta"
 import ProductTabs from "@modules/products/components/product-tabs"
 import RelatedProducts from "@modules/products/components/related-products"
 import ProductInfo from "@modules/products/templates/product-info"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
-import { notFound } from "next/navigation"
-import { HttpTypes } from "@medusajs/types"
-
 import ProductActionsWrapper from "./product-actions-wrapper"
 
-type ProductTemplateProps = {
-  product: HttpTypes.StoreProduct
-  region: HttpTypes.StoreRegion
-  countryCode: string
-  images: HttpTypes.StoreProductImage[]
-}
+type ProductTemplateProps = { product: HttpTypes.StoreProduct; region: HttpTypes.StoreRegion; countryCode: string; images: HttpTypes.StoreProductImage[] }
 
-const ProductTemplate: React.FC<ProductTemplateProps> = ({
-  product,
-  region,
-  countryCode,
-  images,
-}) => {
-  if (!product || !product.id) {
-    return notFound()
-  }
+const ProductTemplate: React.FC<ProductTemplateProps> = ({ product, region, countryCode, images }) => {
+  if (!product?.id) return notFound()
 
   return (
     <>
-      <div
-        className="content-container  flex flex-col small:flex-row small:items-start py-6 relative"
-        data-testid="product-container"
-      >
-        <div className="flex flex-col small:sticky small:top-48 small:py-0 small:max-w-[300px] w-full py-8 gap-y-6">
-          <ProductInfo product={product} />
-          <ProductTabs product={product} />
-        </div>
-        <div className="block w-full relative">
+      <div className="content-container py-8 small:py-12" data-testid="product-container">
+        <nav className="mb-7 flex items-center gap-2 text-xs text-brand-muted"><LocalizedClientLink href="/">Home</LocalizedClientLink><span>/</span><LocalizedClientLink href="/store">Shop</LocalizedClientLink><span>/</span><span className="truncate">{product.title}</span></nav>
+        <div className="grid items-start gap-10 small:grid-cols-[minmax(0,1.15fr)_minmax(20rem,.85fr)] medium:gap-16">
           <ImageGallery images={images} />
+          <div className="small:sticky small:top-40">
+            <ProductInfo product={product} />
+            <div className="surface-card mt-8 p-5 small:p-7">
+              <Suspense fallback={<ProductActions disabled product={product} region={region} />}><ProductActionsWrapper id={product.id} region={region} /></Suspense>
+              <div className="mt-6 grid grid-cols-3 gap-2 border-t border-brand-border pt-5 text-center text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-muted"><span>Secure payment</span><span>Easy returns</span><span>Fast dispatch</span></div>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col small:sticky small:top-48 small:py-0 small:max-w-[300px] w-full py-8 gap-y-12">
-          <ProductOnboardingCta />
-          <Suspense
-            fallback={
-              <ProductActions
-                disabled={true}
-                product={product}
-                region={region}
-              />
-            }
-          >
-            <ProductActionsWrapper id={product.id} region={region} />
-          </Suspense>
-        </div>
+        <div className="mt-14 border-t border-brand-border pt-10 small:mt-20 small:pt-14"><ProductTabs product={product} /></div>
       </div>
-      <div
-        className="content-container my-16 small:my-32"
-        data-testid="related-products-container"
-      >
-        <Suspense fallback={<SkeletonRelatedProducts />}>
-          <RelatedProducts product={product} countryCode={countryCode} />
-        </Suspense>
-      </div>
+      <div className="content-container my-16 small:my-28" data-testid="related-products-container"><Suspense fallback={<SkeletonRelatedProducts />}><RelatedProducts product={product} countryCode={countryCode} /></Suspense></div>
     </>
   )
 }

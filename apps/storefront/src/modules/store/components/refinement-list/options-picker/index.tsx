@@ -58,14 +58,14 @@ const OptionsPicker = ({
     <div className="flex flex-col gap-y-4">
       <div className="flex items-center justify-between px-1">
         <span className="txt-compact-small-plus text-ui-fg-subtle">
-          Options
+          Variants
         </span>
       </div>
       <Accordion.Root
         type="multiple"
         value={openItems}
         onValueChange={(values) => setOpenItems(values as string[])}
-        className="flex flex-col gap-y-3 pr-6"
+        className="flex flex-col gap-y-3"
       >
         {options.map((option) => {
           const values =
@@ -101,7 +101,7 @@ const OptionsPicker = ({
             <Accordion.Item
               key={option.id}
               value={option.id}
-              className="overflow-hidden"
+              className="overflow-hidden border-b border-brand-border last:border-b-0"
             >
               <Accordion.Header>
                 <Accordion.Trigger className="flex w-full items-center justify-between py-3 text-left">
@@ -135,11 +135,11 @@ const OptionsPicker = ({
                         key={value.id}
                         onClick={() => toggleValue(value.id)}
                         className={clsx(
-                          "border-ui-border-base border text-small-regular h-10 rounded-rounded px-3 flex items-center transition-colors duration-150",
+                            "border-brand-border border text-small-regular h-10 rounded-full px-3 flex items-center transition-colors duration-150",
                           {
-                            "border-ui-border-interactive text-ui-fg-base":
+                            "border-brand bg-brand text-brand-contrast":
                               isSelected,
-                            "text-ui-fg-muted hover:text-ui-fg-base":
+                            "text-brand-muted hover:border-brand hover:text-brand-foreground":
                               !isSelected,
                           }
                         )}

@@ -13,10 +13,11 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
   const items = cart?.items
   return (
     <div>
-      <div className="pb-3 flex items-center">
-        <Heading className="text-[2rem] leading-[2.75rem]">Cart</Heading>
+      <div className="mb-6 flex items-end justify-between border-b border-brand-border pb-5">
+        <div><p className="eyebrow mb-2">Your selection</p><Heading level="h1" className="display-heading text-4xl font-normal leading-tight small:text-5xl">Shopping cart</Heading></div>
+        <span className="text-sm text-brand-muted">{items?.length ?? 0} {items?.length === 1 ? "item" : "items"}</span>
       </div>
-      <Table>
+      <div className="surface-card overflow-x-auto px-4 small:px-6"><Table>
         <Table.Header className="border-t-0">
           <Table.Row className="text-ui-fg-subtle txt-medium-plus">
             <Table.HeaderCell className="!pl-0">Item</Table.HeaderCell>
@@ -49,7 +50,7 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
                 return <SkeletonLineItem key={i} />
               })}
         </Table.Body>
-      </Table>
+      </Table></div>
     </div>
   )
 }

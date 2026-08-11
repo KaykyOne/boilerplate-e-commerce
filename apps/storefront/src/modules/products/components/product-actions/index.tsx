@@ -38,6 +38,7 @@ export default function ProductActions({
 
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [isAdding, setIsAdding] = useState(false)
+  const [quantity, setQuantity] = useState(1)
   const countryCode = useParams().countryCode as string
 
   // If there is only 1 variant, preselect the options
@@ -128,7 +129,7 @@ export default function ProductActions({
 
     await addToCart({
       variantId: selectedVariant.id,
-      quantity: 1,
+      quantity,
       countryCode,
     })
 
@@ -162,6 +163,15 @@ export default function ProductActions({
 
         <ProductPrice product={product} variant={selectedVariant} />
 
+        <div className="flex items-center justify-between py-3">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-muted">Quantity</p><p className="mt-1 text-xs text-brand-muted">{!selectedVariant ? "Select options to check availability" : inStock ? "Available" : "Currently unavailable"}</p></div>
+          <div className="flex h-11 items-center rounded-[var(--radius-control)] border border-brand-border bg-brand-surface">
+            <button type="button" className="h-full w-10 text-lg" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label="Decrease quantity">−</button>
+            <span className="min-w-8 text-center text-sm font-semibold">{quantity}</span>
+            <button type="button" className="h-full w-10 text-lg" onClick={() => setQuantity((value) => Math.min(10, value + 1))} aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+
         <Button
           onClick={handleAddToCart}
           disabled={
@@ -172,11 +182,11 @@ export default function ProductActions({
             !isValidVariant
           }
           variant="primary"
-          className="w-full h-10"
+          className="h-12 w-full"
           isLoading={isAdding}
           data-testid="add-product-button"
         >
-          {!selectedVariant && !options
+          {!selectedVariant
             ? "Select variant"
             : !inStock || !isValidVariant
             ? "Out of stock"

@@ -20,6 +20,16 @@ module.exports = {
         padding: "padding-top padding-right padding-bottom padding-left",
       },
       colors: {
+        brand: {
+          DEFAULT: "rgb(var(--color-primary) / <alpha-value>)",
+          contrast: "rgb(var(--color-primary-contrast) / <alpha-value>)",
+          accent: "rgb(var(--color-accent) / <alpha-value>)",
+          background: "rgb(var(--color-background) / <alpha-value>)",
+          surface: "rgb(var(--color-surface) / <alpha-value>)",
+          foreground: "rgb(var(--color-foreground) / <alpha-value>)",
+          muted: "rgb(var(--color-muted) / <alpha-value>)",
+          border: "rgb(var(--color-border) / <alpha-value>)",
+        },
         grey: {
           0: "#FFFFFF",
           5: "#F9FAFB",
@@ -58,16 +68,8 @@ module.exports = {
         "3xl": "2rem",
       },
       fontFamily: {
-        sans: [
-          "Inter",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Ubuntu",
-          "sans-serif",
-        ],
+        sans: ["var(--font-body)"],
+        display: ["var(--font-display)"],
       },
       keyframes: {
         ring: {

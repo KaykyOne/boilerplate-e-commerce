@@ -1,41 +1,14 @@
 import { HttpTypes } from "@medusajs/types"
-import { Container } from "@modules/common/components/ui"
 import Image from "next/image"
 
-type ImageGalleryProps = {
-  images: HttpTypes.StoreProductImage[]
-}
-
-const ImageGallery = ({ images }: ImageGalleryProps) => {
-  return (
-    <div className="flex items-start relative">
-      <div className="flex flex-col flex-1 small:mx-16 gap-y-4">
-        {images.map((image, index) => {
-          return (
-            <Container
-              key={image.id}
-              className="relative aspect-[29/34] w-full overflow-hidden bg-ui-bg-subtle"
-              id={image.id}
-            >
-              {!!image.url && (
-                <Image
-                  src={image.url}
-                  priority={index <= 2 ? true : false}
-                  className="absolute inset-0 rounded-rounded"
-                  alt={`Product image ${index + 1}`}
-                  fill
-                  sizes="(max-width: 576px) 280px, (max-width: 768px) 360px, (max-width: 992px) 480px, 800px"
-                  style={{
-                    objectFit: "cover",
-                  }}
-                />
-              )}
-            </Container>
-          )
-        })}
+const ImageGallery = ({ images }: { images: HttpTypes.StoreProductImage[] }) => (
+  <div className="grid grid-cols-1 gap-4 xsmall:grid-cols-2">
+    {images.map((image, index) => (
+      <div key={image.id} className={`relative aspect-[4/5] overflow-hidden rounded-[var(--radius-card)] bg-[#f1f0eb] ${index === 0 ? "xsmall:col-span-2" : ""}`}>
+        {!!image.url && <Image src={image.url} priority={index === 0} className="object-cover object-center" alt={`Product image ${index + 1}`} fill sizes={index === 0 ? "(max-width: 1024px) 100vw, 60vw" : "(max-width: 1024px) 50vw, 30vw"} />}
       </div>
-    </div>
-  )
-}
+    ))}
+  </div>
+)
 
 export default ImageGallery

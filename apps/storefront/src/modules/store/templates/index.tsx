@@ -2,45 +2,21 @@ import { Suspense } from "react"
 
 import { OptionValueIds } from "@lib/util/product-option-filters"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
-import RefinementList from "@modules/store/components/refinement-list"
+import CatalogShell from "@modules/store/components/catalog-shell"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
-
 import PaginatedProducts from "./paginated-products"
 
-const StoreTemplate = ({
-  sortBy,
-  page,
-  countryCode,
-  optionValueIds,
-}: {
-  sortBy?: SortOptions
-  page?: string
-  countryCode: string
-  optionValueIds?: OptionValueIds
-}) => {
+const StoreTemplate = ({ sortBy, page, countryCode, optionValueIds, query }: { sortBy?: SortOptions; page?: string; countryCode: string; optionValueIds?: OptionValueIds; query?: string }) => {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
+  const title = query ? `Results for “${query}”` : "All products"
 
   return (
-    <div
-      className="flex flex-col small:flex-row small:items-start py-6 content-container"
-      data-testid="category-container"
-    >
-      <RefinementList sortBy={sort} />
-      <div className="w-full">
-        <div className="mb-8 text-2xl-semi">
-          <h1 data-testid="store-page-title">All products</h1>
-        </div>
-        <Suspense fallback={<SkeletonProductGrid />}>
-          <PaginatedProducts
-            sortBy={sort}
-            page={pageNumber}
-            countryCode={countryCode}
-            optionValueIds={optionValueIds}
-          />
-        </Suspense>
-      </div>
-    </div>
+    <CatalogShell title={title} description={query ? "Browse the products matching your search." : "Explore the complete catalog and use the filters to find exactly what you need."} sortBy={sort} breadcrumbs={[{ label: "Shop" }]}>
+      <Suspense fallback={<SkeletonProductGrid />}>
+        <PaginatedProducts sortBy={sort} page={pageNumber} countryCode={countryCode} optionValueIds={optionValueIds} query={query} />
+      </Suspense>
+    </CatalogShell>
   )
 }
 
