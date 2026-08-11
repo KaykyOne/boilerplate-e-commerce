@@ -1,0 +1,95 @@
+name: ${COMPOSE_PROJECT_NAME:-medusa-test}
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-medusa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.docker}
+      POSTGRES_DB: ${POSTGRES_DB:-medusa}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [private]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [private]
+
+  backend:
+    image: medusa-test-backend:latest
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+      args:
+        NODE_MAX_OLD_SPACE_SIZE: ${NODE_MAX_OLD_SPACE_SIZE:-1536}
+        ADMIN_PATH: ${ADMIN_PATH:-/test/adm}
+        MEDUSA_BACKEND_URL: ${API_URL:?Set API_URL in .env.docker}
+        MEDUSA_STOREFRONT_URL: ${STOREFRONT_URL:?Set STOREFRONT_URL in .env.docker}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 9000
+      DATABASE_URL: postgres://${POSTGRES_USER:-medusa}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.docker}@postgres:5432/${POSTGRES_DB:-medusa}?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env.docker}
+      COOKIE_SECRET: ${COOKIE_SECRET:?Set COOKIE_SECRET in .env.docker}
+      STORE_CORS: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN in .env.docker}
+      ADMIN_CORS: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN in .env.docker}
+      AUTH_CORS: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN in .env.docker}
+      ADMIN_PATH: ${ADMIN_PATH:-/test/adm}
+      MEDUSA_BACKEND_URL: ${API_URL:?Set API_URL in .env.docker}
+      MEDUSA_STOREFRONT_URL: ${STOREFRONT_URL:?Set STOREFRONT_URL in .env.docker}
+    ports: ["127.0.0.1:${BACKEND_PORT:-6969}:9000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    networks: [private]
+
+  storefront:
+    image: medusa-test-storefront:latest
+    build:
+      context: .
+      dockerfile: docker/storefront.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 8000
+      MEDUSA_BACKEND_INTERNAL_URL: http://backend:9000
+      NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${API_URL:?Set API_URL in .env.docker}
+      NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:?Set NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY in .env.docker}
+      NEXT_PUBLIC_BASE_PATH: ${PUBLIC_BASE_PATH:-/test}
+      NEXT_PUBLIC_BASE_URL: ${STOREFRONT_URL:?Set STOREFRONT_URL in .env.docker}
+      NEXT_PUBLIC_DEFAULT_REGION: ${NEXT_PUBLIC_DEFAULT_REGION:-dk}
+    ports: ["127.0.0.1:${STOREFRONT_PORT:-6868}:8000"]
+    depends_on:
+      backend: { condition: service_healthy }
+    networks: [private]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  private:
+    driver: bridge

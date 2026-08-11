@@ -7,11 +7,13 @@ checkEnvVariables()
  */
 const S3_HOSTNAME = process.env.MEDUSA_CLOUD_S3_HOSTNAME
 const S3_PATHNAME = process.env.MEDUSA_CLOUD_S3_PATHNAME
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ""
 
 /**
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
+  basePath: BASE_PATH,
   reactStrictMode: true,
   logging: {
     fetches: {

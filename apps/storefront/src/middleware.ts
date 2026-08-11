@@ -1,9 +1,23 @@
 import { HttpTypes } from "@medusajs/types"
 import { NextRequest, NextResponse } from "next/server"
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
+const BACKEND_URL =
+  process.env.MEDUSA_BACKEND_INTERNAL_URL ||
+  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
 const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
 const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "dk"
+
+const getRequestPathname = (request: NextRequest) => {
+  const basePath =
+    request.nextUrl.basePath || process.env.NEXT_PUBLIC_BASE_PATH || ""
+  const pathname = request.nextUrl.pathname
+
+  if (basePath && pathname.startsWith(basePath)) {
+    return pathname.slice(basePath.length) || "/"
+  }
+
+  return pathname
+}
 
 const regionMapCache = {
   regionMap: new Map<string, HttpTypes.StoreRegion>(),
@@ -72,7 +86,9 @@ async function getCountryCode(
 ) {
   let countryCode
 
-  const urlCountryCode = request.nextUrl.pathname.split("/")[1]?.toLowerCase()
+  const urlCountryCode = getRequestPathname(request)
+    .split("/")[1]
+    ?.toLowerCase()
 
   // Cloudflare Workers provides country via request.cf.country
   const cloudflareCountryCode = (request as { cf?: { country?: string } }).cf?.country?.toLowerCase()
@@ -101,7 +117,9 @@ async function getCountryCode(
  * Middleware to handle region selection and onboarding status.
  */
 export async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.includes(".")) {
+  const pathname = getRequestPathname(request)
+
+  if (pathname.includes(".")) {
     return NextResponse.next()
   }
 
@@ -113,7 +131,7 @@ export async function middleware(request: NextRequest) {
 
   // if the country code is available, use it, otherwise use the default region
   const country = countryCode || DEFAULT_REGION
-  const firstPathSegment = request.nextUrl.pathname.split("/")[1]?.toLowerCase()
+  const firstPathSegment = pathname.split("/")[1]?.toLowerCase()
   const urlHasCountry = firstPathSegment === country.toLowerCase()
 
   if (urlHasCountry) {
@@ -128,10 +146,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // if the url doesn't have the country, redirect to it
-  const redirectPath =
-    request.nextUrl.pathname === "/" ? "" : request.nextUrl.pathname
+  const redirectPath = pathname === "/" ? "" : pathname
   const queryString = request.nextUrl.search || ""
-  const redirectUrl = `${request.nextUrl.origin}/${country}${redirectPath}${queryString}`
+  const basePath =
+    request.nextUrl.basePath || process.env.NEXT_PUBLIC_BASE_PATH || ""
+  const redirectUrl = `${request.nextUrl.origin}${basePath}/${country}${redirectPath}${queryString}`
 
   return NextResponse.redirect(redirectUrl, 307)
 }

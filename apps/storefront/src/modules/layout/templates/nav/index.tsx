@@ -53,7 +53,7 @@ export default async function Nav() {
             </LocalizedClientLink>
           </div>
 
-          <form action="/store" className="relative hidden w-[min(34vw,32rem)] small:block">
+          <form action={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/store`} className="relative hidden w-[min(34vw,32rem)] small:block">
             <label className="sr-only" htmlFor="site-search">Search products</label>
             <input id="site-search" name="q" type="search" placeholder="Search products" className="h-11 w-full rounded-full border border-brand-border bg-brand-background px-5 pr-12 text-sm outline-none transition focus:border-brand" />
             <button type="submit" aria-label="Submit search" className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-foreground"><SearchIcon /></button>
