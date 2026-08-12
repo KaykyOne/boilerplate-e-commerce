@@ -10,17 +10,19 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   return (
     <div id="product-info">
       <div className="flex flex-col gap-y-4">
-        {product.collection && (
+        {product.collection ? (
           <LocalizedClientLink
             href={`/collections/${product.collection.handle}`}
             className="eyebrow hover:text-brand-accent"
           >
             {product.collection.title}
           </LocalizedClientLink>
-        )}
+        ) : product.type?.value ? (
+          <p className="eyebrow">{product.type.value}</p>
+        ) : null}
         <Heading
           level="h1"
-          className="display-heading text-4xl font-normal leading-tight text-brand-foreground small:text-5xl"
+          className="display-heading text-4xl font-normal leading-[1.05] text-brand-foreground small:text-5xl"
           data-testid="product-title"
         >
           {product.title}

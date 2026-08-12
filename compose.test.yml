@@ -53,6 +53,10 @@ services:
       ADMIN_PATH: ${ADMIN_PATH:-/test/adm}
       MEDUSA_BACKEND_URL: ${API_URL:?Set API_URL in .env.docker}
       MEDUSA_STOREFRONT_URL: ${STOREFRONT_URL:?Set STOREFRONT_URL in .env.docker}
+      FILE_UPLOAD_DIR: /server/static
+      FILE_BACKEND_URL: ${API_URL:?Set API_URL in .env.docker}/static
+    volumes:
+      - file_uploads:/server/static
     ports: ["127.0.0.1:${BACKEND_PORT:-6969}:9000"]
     depends_on:
       postgres: { condition: service_healthy }
@@ -89,6 +93,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  file_uploads:
 
 networks:
   private:

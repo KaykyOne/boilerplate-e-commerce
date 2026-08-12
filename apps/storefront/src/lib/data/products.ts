@@ -2,10 +2,16 @@
 
 import { sdk } from "@lib/config"
 import { OptionValueIds } from "@lib/util/product-option-filters"
+import {
+  CatalogFilterFacets,
+  CatalogFilters,
+  getProductMinimumPrice,
+  isProductInStock,
+} from "@lib/util/catalog-filters"
 import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
-import { getAuthHeaders, getCacheOptions } from "./cookies"
+import { getAuthHeaders } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
 type ProductListQueryParams = (HttpTypes.FindParams &
@@ -56,10 +62,6 @@ export const listProducts = async ({
     ...(await getAuthHeaders()),
   }
 
-  const next = {
-    ...(await getCacheOptions("products")),
-  }
-
   return sdk.client
     .fetch<{ products: HttpTypes.StoreProduct[]; count: number }>(
       `/store/products`,
@@ -70,12 +72,11 @@ export const listProducts = async ({
           offset,
           region_id: region?.id,
           fields:
-            "*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,",
+            "*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,+type",
           ...queryParams,
         },
         headers,
-        next,
-        cache: "force-cache",
+        cache: "no-store",
       }
     )
     .then(({ products, count }) => {
@@ -102,12 +103,14 @@ export const listProductsWithSort = async ({
   sortBy = "created_at",
   countryCode,
   optionValueIds,
+  filters,
 }: {
   page?: number
   queryParams?: ProductListQueryParams
   sortBy?: SortOptions
   countryCode: string
   optionValueIds?: OptionValueIds
+  filters?: CatalogFilters
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
@@ -130,11 +133,34 @@ export const listProductsWithSort = async ({
     countryCode,
   })
 
-  const sortedProducts = sortProducts(products, sortBy)
+  const filteredProducts = products.filter((product) => {
+    const inStock = isProductInStock(product)
+    const availabilityMatches =
+      !filters?.availability.length ||
+      filters.availability.length > 1 ||
+      (filters.availability[0] === "in-stock" ? inStock : !inStock)
+    const minimumPrice = getProductMinimumPrice(product)
+    const priceMatches =
+      (filters?.minPrice === undefined ||
+        (minimumPrice !== undefined && minimumPrice >= filters.minPrice)) &&
+      (filters?.maxPrice === undefined ||
+        (minimumPrice !== undefined && minimumPrice <= filters.maxPrice))
+    const typeMatches =
+      !filters?.typeIds.length ||
+      (!!product.type?.id && filters.typeIds.includes(product.type.id))
+    const productTagIds = (product.tags ?? []).map((tag) => tag.id)
+    const tagMatches =
+      !filters?.tagIds.length ||
+      filters.tagIds.some((tagId) => productTagIds.includes(tagId))
+
+    return availabilityMatches && priceMatches && typeMatches && tagMatches
+  })
+
+  const sortedProducts = sortProducts(filteredProducts, sortBy)
 
   const pageParam = (page - 1) * limit
 
-  const filteredCount = products.length
+  const filteredCount = filteredProducts.length
 
   const nextPage = filteredCount > pageParam + limit ? pageParam + limit : null
 
@@ -147,5 +173,82 @@ export const listProductsWithSort = async ({
     },
     nextPage,
     queryParams,
+  }
+}
+
+export const getProductFilterFacets = async ({
+  countryCode,
+  queryParams,
+}: {
+  countryCode: string
+  queryParams?: ProductListQueryParams
+}): Promise<CatalogFilterFacets> => {
+  const {
+    response: { products },
+  } = await listProducts({
+    pageParam: 1,
+    countryCode,
+    queryParams: {
+      ...queryParams,
+      limit: 100,
+    },
+  })
+
+  const productTypes = new Map<string, { label: string; count: number }>()
+  const tags = new Map<string, { label: string; count: number }>()
+  let inStock = 0
+  let outOfStock = 0
+  let currencyCode: string | undefined
+
+  products.forEach((product) => {
+    if (isProductInStock(product)) {
+      inStock += 1
+    } else {
+      outOfStock += 1
+    }
+
+    if (product.type?.id && product.type.value) {
+      const current = productTypes.get(product.type.id)
+      productTypes.set(product.type.id, {
+        label: product.type.value,
+        count: (current?.count ?? 0) + 1,
+      })
+    }
+
+    const productTags = product.tags ?? []
+
+    productTags.forEach((tag) => {
+      if (!tag.id || !tag.value) {
+        return
+      }
+
+      const current = tags.get(tag.id)
+      tags.set(tag.id, {
+        label: tag.value,
+        count: (current?.count ?? 0) + 1,
+      })
+    })
+
+    const productCurrencyCode = product.variants?.find(
+      (variant) => variant.calculated_price?.currency_code
+    )?.calculated_price?.currency_code
+
+    if (!currencyCode && productCurrencyCode) {
+      currencyCode = productCurrencyCode
+    }
+  })
+
+  const toOptions = (
+    entries: Map<string, { label: string; count: number }>
+  ) =>
+    Array.from(entries, ([id, value]) => ({ id, ...value })).sort((a, b) =>
+      a.label.localeCompare(b.label)
+    )
+
+  return {
+    availability: { inStock, outOfStock },
+    currencyCode,
+    productTypes: toOptions(productTypes),
+    tags: toOptions(tags),
   }
 }

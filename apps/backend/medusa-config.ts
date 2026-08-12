@@ -1,8 +1,32 @@
-import { defineConfig, loadEnv, MedusaError } from "@medusajs/framework/utils"
+import {
+  defineConfig,
+  loadEnv,
+  MedusaError,
+} from "@medusajs/framework/utils"
+import { resolve } from "path"
 
-loadEnv(process.env.NODE_ENV || "development", process.cwd())
+const nodeEnv = process.env.NODE_ENV || "development"
+
+loadEnv(nodeEnv, process.cwd())
 
 const adminPath = process.env.ADMIN_PATH || "/app"
+const backendUrl =
+  nodeEnv === "development"
+    ? process.env.MEDUSA_DEV_BACKEND_URL || "http://localhost:9000"
+    : process.env.MEDUSA_BACKEND_URL
+const redisUrl =
+  nodeEnv === "development"
+    ? process.env.MEDUSA_DEV_REDIS_URL
+    : process.env.REDIS_URL
+const fileUploadDir =
+  nodeEnv === "development"
+    ? process.env.MEDUSA_DEV_FILE_UPLOAD_DIR ||
+      resolve(process.cwd(), "static")
+    : process.env.FILE_UPLOAD_DIR || "/server/static"
+const fileBackendUrl =
+  nodeEnv === "development"
+    ? process.env.MEDUSA_DEV_FILE_BACKEND_URL || `${backendUrl}/static`
+    : process.env.FILE_BACKEND_URL || `${backendUrl}/static`
 
 if (!adminPath.startsWith("/") || adminPath.endsWith("/")) {
   throw new MedusaError(
@@ -19,7 +43,7 @@ module.exports = defineConfig({
         ssl: false,
       },
     },
-    redisUrl: process.env.REDIS_URL,
+    redisUrl,
     http: {
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
@@ -30,7 +54,24 @@ module.exports = defineConfig({
   },
   admin: {
     path: adminPath as `/${string}`,
-    backendUrl: process.env.MEDUSA_BACKEND_URL,
+    backendUrl,
     storefrontUrl: process.env.MEDUSA_STOREFRONT_URL,
   },
+  modules: [
+    {
+      resolve: "@medusajs/medusa/file",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/file-local",
+            id: "local",
+            options: {
+              upload_dir: fileUploadDir,
+              backend_url: fileBackendUrl,
+            },
+          },
+        ],
+      },
+    },
+  ],
 })

@@ -2,12 +2,13 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { HttpTypes } from "@medusajs/types"
 import { OptionValueIds } from "@lib/util/product-option-filters"
+import { CatalogFilters } from "@lib/util/catalog-filters"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import CatalogShell from "@modules/store/components/catalog-shell"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import PaginatedProducts from "@modules/store/templates/paginated-products"
 
-export default function CategoryTemplate({ category, sortBy, page, countryCode, optionValueIds }: { category: HttpTypes.StoreProductCategory; sortBy?: SortOptions; page?: string; countryCode: string; optionValueIds?: OptionValueIds }) {
+export default function CategoryTemplate({ category, sortBy, page, countryCode, optionValueIds, filters }: { category: HttpTypes.StoreProductCategory; sortBy?: SortOptions; page?: string; countryCode: string; optionValueIds?: OptionValueIds; filters?: CatalogFilters }) {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
   if (!category || !countryCode) notFound()
@@ -18,9 +19,9 @@ export default function CategoryTemplate({ category, sortBy, page, countryCode, 
   const childLinks = (category.category_children ?? []).map((child) => ({ label: child.name, href: `/categories/${child.handle}` }))
 
   return (
-    <CatalogShell title={category.name} description={category.description} sortBy={sort} breadcrumbs={breadcrumbs} childLinks={childLinks}>
+    <CatalogShell title={category.name} description={category.description} sortBy={sort} breadcrumbs={breadcrumbs} childLinks={childLinks} countryCode={countryCode} categoryId={category.id}>
       <Suspense fallback={<SkeletonProductGrid numberOfProducts={category.products?.length ?? 8} />}>
-        <PaginatedProducts sortBy={sort} page={pageNumber} categoryId={category.id} countryCode={countryCode} optionValueIds={optionValueIds} />
+        <PaginatedProducts sortBy={sort} page={pageNumber} categoryId={category.id} countryCode={countryCode} optionValueIds={optionValueIds} filters={filters} />
       </Suspense>
     </CatalogShell>
   )

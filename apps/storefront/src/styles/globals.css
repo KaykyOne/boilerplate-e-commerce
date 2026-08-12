@@ -3,21 +3,54 @@
 @import "tailwindcss/utilities";
 
 :root {
-  --color-primary: 28 54 45;
-  --color-primary-contrast: 255 255 255;
-  --color-accent: 202 108 60;
-  --color-background: 250 249 246;
-  --color-surface: 255 255 255;
-  --color-foreground: 29 31 29;
-  --color-muted: 104 108 103;
-  --color-border: 221 220 214;
-  --radius-control: 0.5rem;
-  --radius-card: 0.75rem;
-  --content-width: 90rem;
-  --shadow-card: 0 1px 2px rgb(20 28 24 / 0.05), 0 12px 30px rgb(20 28 24 / 0.04);
-  --shadow-card-hover: 0 12px 36px rgb(20 28 24 / 0.12);
-  --font-body: "Aptos", "Segoe UI", sans-serif;
-  --font-display: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  /* Brand */
+  --color-primary: 5 5 6;
+  --color-primary-foreground: 247 239 218;
+  --color-secondary: 25 23 19;
+  --color-secondary-foreground: 238 222 178;
+  --color-accent: 207 165 63;
+  --color-accent-foreground: 8 7 5;
+
+  /* Background */
+  --color-background: 8 8 9;
+  --color-surface: 15 15 16;
+  --color-surface-muted: 20 19 17;
+  --color-image-background: 12 12 13;
+  --color-decorative: 207 165 63;
+  --color-header-secondary: 11 11 12;
+
+  /* Text */
+  --color-foreground: 240 232 211;
+  --color-muted-foreground: 164 154 130;
+
+  /* UI */
+  --color-border: 65 55 34;
+  --color-input: 128 103 48;
+  --color-overlay: 0 0 0;
+
+  /* Product */
+  --color-price: 225 190 100;
+  --color-sale: 190 91 51;
+  --color-success: 84 159 111;
+  --color-warning: 221 170 57;
+
+  /* Layout */
+  --container-width: 92rem;
+  --header-height: 4.5rem;
+  --section-spacing: 4rem;
+
+  /* Shape */
+  --radius-sm: 0.2rem;
+  --radius-md: 0.35rem;
+  --radius-lg: 0.65rem;
+  --radius-control: var(--radius-sm);
+  --radius-card: var(--radius-md);
+
+  /* Elevation and type */
+  --shadow-card: 0 1px 0 rgb(var(--color-accent) / 0.08), 0 18px 45px rgb(0 0 0 / 0.18);
+  --shadow-card-hover: 0 0 0 1px rgb(var(--color-accent) / 0.24), 0 22px 55px rgb(0 0 0 / 0.55);
+  --font-body: "Bahnschrift", "Aptos", "Trebuchet MS", sans-serif;
+  --font-display: "Palatino Linotype", "Book Antiqua", Georgia, serif;
 }
 
 html {
@@ -25,15 +58,20 @@ html {
 }
 
 body {
-  background: rgb(var(--color-background));
+  background:
+    radial-gradient(circle at 12% 8%, rgb(var(--color-accent) / 0.055), transparent 28rem),
+    linear-gradient(rgb(var(--color-border) / 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--color-border) / 0.06) 1px, transparent 1px),
+    rgb(var(--color-background));
+  background-size: auto, 42px 42px, 42px 42px, auto;
   color: rgb(var(--color-foreground));
   font-family: var(--font-body);
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: rgb(var(--color-primary));
-  color: rgb(var(--color-primary-contrast));
+  background: rgb(var(--color-accent));
+  color: rgb(var(--color-accent-foreground));
 }
 
 :focus-visible {
@@ -74,9 +112,9 @@ body {
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
   select:-webkit-autofill:focus {
-    border: 1px solid #212121;
-    -webkit-text-fill-color: #212121;
-    -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+    border: 1px solid rgb(var(--color-input));
+    -webkit-text-fill-color: rgb(var(--color-foreground));
+    -webkit-box-shadow: 0 0 0px 1000px rgb(var(--color-surface)) inset;
     transition: background-color 5000s ease-in-out 0s;
   }
 
@@ -91,14 +129,16 @@ body {
 @layer components {
   .content-container {
     width: 100%;
-    max-width: var(--content-width);
+    max-width: var(--container-width);
     margin-inline: auto;
     padding-inline: clamp(1rem, 3vw, 2.5rem);
   }
 
   .display-heading {
     font-family: var(--font-display);
+    font-weight: 800;
     letter-spacing: -0.035em;
+    text-wrap: balance;
   }
 
   .surface-card {
@@ -108,13 +148,58 @@ body {
     box-shadow: var(--shadow-card);
   }
 
+  .gold-text {
+    color: rgb(var(--color-accent));
+    background: linear-gradient(105deg, #9c6c1f 0%, #f3df91 42%, #c08a2b 72%, #f6e7aa 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .forge-frame {
+    position: relative;
+    border: 1px solid rgb(var(--color-accent) / 0.32);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.025), 0 30px 80px rgb(0 0 0 / 0.42);
+  }
+
+  .forge-frame::before,
+  .forge-frame::after {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    width: 2.5rem;
+    height: 2.5rem;
+    pointer-events: none;
+  }
+
+  .forge-frame::before {
+    left: 0.7rem;
+    top: 0.7rem;
+    border-left: 1px solid rgb(var(--color-accent) / 0.65);
+    border-top: 1px solid rgb(var(--color-accent) / 0.65);
+  }
+
+  .forge-frame::after {
+    right: 0.7rem;
+    bottom: 0.7rem;
+    border-right: 1px solid rgb(var(--color-accent) / 0.65);
+    border-bottom: 1px solid rgb(var(--color-accent) / 0.65);
+  }
+
   .eyebrow {
     @apply text-[11px] font-semibold uppercase tracking-[0.18em];
     color: rgb(var(--color-muted));
   }
 
   .contrast-btn {
-    @apply px-4 py-2 border border-black rounded-full hover:bg-black hover:text-white transition-colors duration-200 ease-in;
+    @apply rounded-full border px-4 py-2 transition-colors duration-200 ease-in;
+    border-color: rgb(var(--color-primary));
+    color: rgb(var(--color-primary));
+  }
+
+  .contrast-btn:hover {
+    background: rgb(var(--color-primary));
+    color: rgb(var(--color-primary-foreground));
   }
 
   .text-xsmall-regular {

@@ -1,30 +1,61 @@
+import Image from "next/image"
+
+import { getStaticAssetUrl } from "@lib/util/static-asset"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { Button } from "@modules/common/components/ui"
 
 const Hero = () => (
-  <section className="overflow-hidden border-b border-brand-border bg-brand-background">
-    <div className="content-container grid min-h-[36rem] items-center gap-12 py-16 small:grid-cols-[1.05fr_.95fr] small:py-24">
-      <div className="relative z-10 max-w-2xl">
-        <p className="eyebrow mb-6">The considered collection</p>
-        <h1 className="display-heading text-[clamp(3rem,7vw,6.5rem)] leading-[0.92]">Good things,<br /><em className="font-normal text-brand-accent">made easy.</em></h1>
-        <p className="mt-7 max-w-lg text-base leading-7 text-brand-muted small:text-lg">A clean, adaptable shopping experience built around the products—not the noise.</p>
-        <div className="mt-9 flex flex-wrap gap-3">
-          <LocalizedClientLink href="/store"><Button size="large" className="min-w-40">Shop the collection <span aria-hidden="true">→</span></Button></LocalizedClientLink>
-          <LocalizedClientLink href="/store?sortBy=created_at"><Button size="large" variant="secondary">New arrivals</Button></LocalizedClientLink>
+  <section className="bg-brand">
+    <div className="content-container py-5 small:py-8">
+      <div className="forge-frame relative min-h-[34rem] overflow-hidden bg-brand">
+        <Image
+          src={getStaticAssetUrl("/images/catalog-hero-placeholder.webp")}
+          alt=""
+          fill
+          priority
+          className="object-cover object-center opacity-45 grayscale-[25%] saturate-75"
+          sizes="(max-width: 1440px) 100vw, 1440px"
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_35%,rgba(207,165,63,0.18),transparent_28%),linear-gradient(90deg,rgba(5,5,6,1)_12%,rgba(5,5,6,0.9)_50%,rgba(5,5,6,0.3)_100%)]" />
+        <div className="relative z-10 flex min-h-[34rem] max-w-3xl flex-col justify-center px-7 py-16 text-brand-contrast small:px-16">
+          <Image
+            src={getStaticAssetUrl("/logo.png")}
+            alt="Valhalla Forge"
+            width={562}
+            height={410}
+            priority
+            className="mb-3 h-auto w-44 object-contain drop-shadow-[0_0_24px_rgba(207,165,63,0.16)]"
+          />
+          <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.26em] text-brand-accent">
+            Cards · Collectibles · Artifacts
+          </p>
+          <h1 className="display-heading text-[clamp(3.25rem,7vw,6.8rem)] leading-[0.86]">
+            Forge your<br />
+            <span className="gold-text">collection.</span>
+          </h1>
+          <p className="mt-7 max-w-xl text-sm leading-7 text-brand-contrast/65 small:text-base">
+            Curated pieces for players, collectors, and explorers of worlds that deserve to exist beyond the screen.
+          </p>
+          <div className="mt-9 flex flex-col gap-3 xsmall:flex-row">
+            <LocalizedClientLink href="/store" className="w-full xsmall:w-auto">
+              <Button size="large" className="w-full min-w-44 !rounded-sm !bg-brand-accent !font-bold !uppercase !tracking-[0.1em] !text-brand-accent-foreground hover:!bg-[#efd783]">
+                Explore the forge <span aria-hidden="true">→</span>
+              </Button>
+            </LocalizedClientLink>
+            <LocalizedClientLink href="/store?sortBy=created_at" className="w-full xsmall:w-auto">
+              <Button size="large" variant="secondary" className="w-full !rounded-sm !border-brand-accent/45 !bg-black/20 !text-brand-contrast hover:!border-brand-accent hover:!bg-brand-accent/10">
+                New arrivals
+              </Button>
+            </LocalizedClientLink>
+          </div>
         </div>
-      </div>
-      <div className="relative mx-auto h-[24rem] w-full max-w-xl small:h-[32rem]" aria-hidden="true">
-        <div className="absolute inset-x-[8%] top-[6%] h-[82%] rotate-3 rounded-[2rem] bg-brand shadow-2xl" />
-        <div className="absolute inset-x-[19%] top-0 h-[82%] -rotate-6 rounded-[2rem] border border-brand-border bg-[#e9d8c4] shadow-xl" />
-        <div className="absolute inset-x-[28%] top-[14%] grid h-[72%] place-items-center rounded-[2rem] border border-white/70 bg-brand-surface shadow-2xl">
-          <div className="text-center"><span className="mx-auto mb-5 block h-20 w-20 rounded-full border border-brand-border bg-brand-background" /><p className="eyebrow">Your product</p><p className="display-heading mt-2 text-3xl">Front and center</p></div>
-        </div>
-        <span className="absolute bottom-2 left-4 h-20 w-20 rounded-full bg-brand-accent" />
       </div>
     </div>
-    <div className="border-t border-brand-border bg-brand-surface">
-      <div className="content-container grid grid-cols-1 divide-y divide-brand-border py-1 text-center text-xs font-semibold uppercase tracking-[0.13em] xsmall:grid-cols-3 xsmall:divide-x xsmall:divide-y-0">
-        <p className="py-4">Secure checkout</p><p className="py-4">Responsive support</p><p className="py-4">Simple returns</p>
+    <div className="border-y border-brand-accent/15 bg-brand-header text-brand-contrast">
+      <div className="content-container grid grid-cols-1 divide-y divide-brand-accent/10 py-1 text-center font-mono text-[10px] font-bold uppercase tracking-[0.16em] xsmall:grid-cols-3 xsmall:divide-x xsmall:divide-y-0">
+        <p className="py-4">Protected checkout</p>
+        <p className="py-4 text-brand-accent">Forge-worthy dispatch</p>
+        <p className="py-4">Built for collectors</p>
       </div>
     </div>
   </section>

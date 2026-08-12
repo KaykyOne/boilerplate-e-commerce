@@ -1,8 +1,8 @@
 export const storefrontConfig = {
-  name: "Storefront",
-  shortName: "SF",
-  tagline: "Everyday goods, thoughtfully selected.",
-  announcement: "Free shipping on qualifying orders",
+  name: "Valhalla Forge",
+  shortName: "VF",
+  tagline: "Relics for those who forge passion into a collection.",
+  announcement: "The forge is open · Curated goods for dedicated collectors",
   navigation: [
     { label: "Shop all", href: "/store" },
     { label: "New arrivals", href: "/store?sortBy=created_at" },

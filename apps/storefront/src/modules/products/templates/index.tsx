@@ -17,15 +17,15 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({ product, region, coun
 
   return (
     <>
-      <div className="content-container py-8 small:py-12" data-testid="product-container">
-        <nav className="mb-7 flex items-center gap-2 text-xs text-brand-muted"><LocalizedClientLink href="/">Home</LocalizedClientLink><span>/</span><LocalizedClientLink href="/store">Shop</LocalizedClientLink><span>/</span><span className="truncate">{product.title}</span></nav>
-        <div className="grid items-start gap-10 small:grid-cols-[minmax(0,1.15fr)_minmax(20rem,.85fr)] medium:gap-16">
+      <div className="content-container py-7 small:py-11" data-testid="product-container">
+        <nav className="mb-8 flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-brand-muted"><LocalizedClientLink href="/">Home</LocalizedClientLink><span>›</span><LocalizedClientLink href="/store">Shop</LocalizedClientLink><span>›</span><span className="truncate">{product.title}</span></nav>
+        <div className="grid items-start gap-10 small:grid-cols-[minmax(0,1.1fr)_minmax(20rem,.9fr)] medium:gap-16">
           <ImageGallery images={images} />
           <div className="small:sticky small:top-40">
             <ProductInfo product={product} />
-            <div className="surface-card mt-8 p-5 small:p-7">
+            <div className="mt-8 border-t border-brand-border pt-7">
               <Suspense fallback={<ProductActions disabled product={product} region={region} />}><ProductActionsWrapper id={product.id} region={region} /></Suspense>
-              <div className="mt-6 grid grid-cols-3 gap-2 border-t border-brand-border pt-5 text-center text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-muted"><span>Secure payment</span><span>Easy returns</span><span>Fast dispatch</span></div>
+              <div className="mt-6 grid grid-cols-3 gap-2 border-t border-brand-border pt-5 text-center text-[9px] font-semibold uppercase tracking-[0.1em] text-brand-muted"><span>Secure payment</span><span>Easy returns</span><span>Fast dispatch</span></div>
             </div>
           </div>
         </div>

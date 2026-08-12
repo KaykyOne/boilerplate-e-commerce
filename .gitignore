@@ -26,6 +26,8 @@ coverage
 
 # Misc
 *.pem
+apps/backend/static/*
+!apps/backend/static/.gitkeep
 
 # Debug
 npm-debug.log*

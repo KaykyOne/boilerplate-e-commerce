@@ -11,6 +11,8 @@ import {
   createInventoryLevelsWorkflow,
   createProductCategoriesWorkflow,
   createProductOptionsWorkflow,
+  createProductTagsWorkflow,
+  createProductTypesWorkflow,
   createProductsWorkflow,
   createRegionsWorkflow,
   createSalesChannelsWorkflow,
@@ -37,116 +39,158 @@ export default async function initial_data_seed({
 
   const countries = ["gb", "de", "dk", "se", "fr", "es", "it"];
 
+  const { data: existingNerdCategories } = await query.graph({
+    entity: "product_category",
+    fields: ["id"],
+    filters: { name: "Trading Cards" },
+  })
+
+  if (existingNerdCategories.length) {
+    logger.info("Nerd catalog preset already exists. Skipping seed.")
+    return
+  }
+
   logger.info("Seeding store data...");
-  const {
-    result: [defaultSalesChannel],
-  } = await createSalesChannelsWorkflow(container).run({
-    input: {
-      salesChannelsData: [
-        {
-          name: "Default Sales Channel",
-          description: "Created by Medusa",
-        },
-      ],
-    },
-  });
+  const { data: existingSalesChannels } = await query.graph({
+    entity: "sales_channel",
+    fields: ["id", "name"],
+    filters: { name: "Default Sales Channel" },
+  })
+  let defaultSalesChannelId = existingSalesChannels[0]?.id
 
-  const {
-    result: [publishableApiKey],
-  } = await createApiKeysWorkflow(container).run({
-    input: {
-      api_keys: [
-        {
-          title: "Default Publishable API Key",
-          type: "publishable",
-          created_by: "",
-        },
-      ],
-    },
-  });
+  if (!defaultSalesChannelId) {
+    const { result } = await createSalesChannelsWorkflow(container).run({
+      input: {
+        salesChannelsData: [
+          {
+            name: "Default Sales Channel",
+            description: "Created by Medusa",
+          },
+        ],
+      },
+    })
+    defaultSalesChannelId = result[0].id
 
-  await linkSalesChannelsToApiKeyWorkflow(container).run({
-    input: {
-      id: publishableApiKey.id,
-      add: [defaultSalesChannel.id],
-    },
-  });
+    const {
+      result: [publishableApiKey],
+    } = await createApiKeysWorkflow(container).run({
+      input: {
+        api_keys: [
+          {
+            title: "Default Publishable API Key",
+            type: "publishable",
+            created_by: "",
+          },
+        ],
+      },
+    })
 
-  const {
-    result: [store],
-  } = await createStoresWorkflow(container).run({
-    input: {
-      stores: [
-        {
-          name: "Default Store",
-          supported_currencies: [
-            {
-              currency_code: "eur",
-              is_default: true,
-            },
-            {
-              currency_code: "usd",
-              is_default: false,
-            },
-          ],
-          default_sales_channel_id: defaultSalesChannel.id,
-        },
-      ],
-    },
-  });
+    await linkSalesChannelsToApiKeyWorkflow(container).run({
+      input: {
+        id: publishableApiKey.id,
+        add: [defaultSalesChannelId],
+      },
+    })
+  }
+
+  const { data: stores } = await query.graph({
+    entity: "store",
+    fields: ["id"],
+  })
+
+  if (!stores.length) {
+    await createStoresWorkflow(container).run({
+      input: {
+        stores: [
+          {
+            name: "Default Store",
+            supported_currencies: [
+              {
+                currency_code: "eur",
+                is_default: true,
+              },
+              {
+                currency_code: "usd",
+                is_default: false,
+              },
+            ],
+            default_sales_channel_id: defaultSalesChannelId,
+          },
+        ],
+      },
+    })
+  }
 
   logger.info("Seeding region data...");
-  const { result: regionResult } = await createRegionsWorkflow(container).run({
-    input: {
-      regions: [
-        {
-          name: "Europe",
-          currency_code: "eur",
-          countries,
-          payment_providers: ["pp_system_default"],
-        },
-      ],
-    },
-  });
-  const region = regionResult[0];
+  const { data: regions } = await query.graph({
+    entity: "region",
+    fields: ["id", "name"],
+    filters: { name: "Europe" },
+  })
+  let regionId = regions[0]?.id
+
+  if (!regionId) {
+    const { result } = await createRegionsWorkflow(container).run({
+      input: {
+        regions: [
+          {
+            name: "Europe",
+            currency_code: "eur",
+            countries,
+            payment_providers: ["pp_system_default"],
+          },
+        ],
+      },
+    })
+    regionId = result[0].id
+  }
   logger.info("Finished seeding regions.");
 
   logger.info("Seeding tax regions...");
-  await createTaxRegionsWorkflow(container).run({
-    input: countries.map((country_code) => ({
-      country_code,
-      provider_id: "tp_system",
-    })),
-  });
+  if (!regions.length) {
+    await createTaxRegionsWorkflow(container).run({
+      input: countries.map((country_code) => ({
+        country_code,
+        provider_id: "tp_system",
+      })),
+    })
+  }
   logger.info("Finished seeding tax regions.");
 
   logger.info("Seeding stock location data...");
-  const { result: stockLocationResult } = await createStockLocationsWorkflow(
-    container
-  ).run({
-    input: {
-      locations: [
-        {
-          name: "European Warehouse",
-          address: {
-            city: "Copenhagen",
-            country_code: "DK",
-            address_1: "",
-          },
-        },
-      ],
-    },
-  });
-  const stockLocation = stockLocationResult[0];
+  const { data: stockLocations } = await query.graph({
+    entity: "stock_location",
+    fields: ["id", "name"],
+    filters: { name: "European Warehouse" },
+  })
+  let stockLocationId = stockLocations[0]?.id
 
-  await link.create({
-    [Modules.STOCK_LOCATION]: {
-      stock_location_id: stockLocation.id,
-    },
-    [Modules.FULFILLMENT]: {
-      fulfillment_provider_id: "manual_manual",
-    },
-  });
+  if (!stockLocationId) {
+    const { result } = await createStockLocationsWorkflow(container).run({
+      input: {
+        locations: [
+          {
+            name: "European Warehouse",
+            address: {
+              city: "Copenhagen",
+              country_code: "DK",
+              address_1: "",
+            },
+          },
+        ],
+      },
+    })
+    stockLocationId = result[0].id
+
+    await link.create({
+      [Modules.STOCK_LOCATION]: {
+        stock_location_id: stockLocationId,
+      },
+      [Modules.FULFILLMENT]: {
+        fulfillment_provider_id: "manual_manual",
+      },
+    })
+  }
 
   logger.info("Seeding fulfillment data...");
   // This is created by a migration script in core.
@@ -156,62 +200,55 @@ export default async function initial_data_seed({
   });
   const shippingProfile = shippingProfileResult[0];
 
-  const fulfillmentSet = await fulfillmentModuleService.createFulfillmentSets({
-    name: "European Warehouse delivery",
-    type: "shipping",
-    service_zones: [
-      {
-        name: "Europe",
-        geo_zones: [
-          {
-            country_code: "gb",
-            type: "country",
-          },
-          {
-            country_code: "de",
-            type: "country",
-          },
-          {
-            country_code: "dk",
-            type: "country",
-          },
-          {
-            country_code: "se",
-            type: "country",
-          },
-          {
-            country_code: "fr",
-            type: "country",
-          },
-          {
-            country_code: "es",
-            type: "country",
-          },
-          {
-            country_code: "it",
-            type: "country",
-          },
-        ],
+  const { data: fulfillmentSets } = await query.graph({
+    entity: "fulfillment_set",
+    fields: ["id", "name", "service_zones.id"],
+    filters: { name: "European Warehouse delivery" },
+  })
+  let fulfillmentSetId = fulfillmentSets[0]?.id
+  let serviceZoneId = fulfillmentSets[0]?.service_zones?.[0]?.id
+
+  if (!fulfillmentSetId || !serviceZoneId) {
+    const fulfillmentSet = await fulfillmentModuleService.createFulfillmentSets({
+      name: "European Warehouse delivery",
+      type: "shipping",
+      service_zones: [
+        {
+          name: "Europe",
+          geo_zones: countries.map((country_code) => ({
+            country_code,
+            type: "country" as const,
+          })),
+        },
+      ],
+    })
+    fulfillmentSetId = fulfillmentSet.id
+    serviceZoneId = fulfillmentSet.service_zones[0].id
+
+    await link.create({
+      [Modules.STOCK_LOCATION]: {
+        stock_location_id: stockLocationId,
       },
-    ],
-  });
+      [Modules.FULFILLMENT]: {
+        fulfillment_set_id: fulfillmentSetId,
+      },
+    })
+  }
 
-  await link.create({
-    [Modules.STOCK_LOCATION]: {
-      stock_location_id: stockLocation.id,
-    },
-    [Modules.FULFILLMENT]: {
-      fulfillment_set_id: fulfillmentSet.id,
-    },
-  });
+  const { data: shippingOptions } = await query.graph({
+    entity: "shipping_option",
+    fields: ["id"],
+    filters: { name: "Standard Shipping" },
+  })
 
-  await createShippingOptionsWorkflow(container).run({
+  if (!shippingOptions.length) {
+    await createShippingOptionsWorkflow(container).run({
     input: [
       {
         name: "Standard Shipping",
         price_type: "flat",
         provider_id: "manual_manual",
-        service_zone_id: fulfillmentSet.service_zones[0].id,
+        service_zone_id: serviceZoneId,
         shipping_profile_id: shippingProfile.id,
         type: {
           label: "Standard",
@@ -228,7 +265,7 @@ export default async function initial_data_seed({
             amount: 10,
           },
           {
-            region_id: region.id,
+            region_id: regionId,
             amount: 10,
           },
         ],
@@ -249,7 +286,7 @@ export default async function initial_data_seed({
         name: "Express Shipping",
         price_type: "flat",
         provider_id: "manual_manual",
-        service_zone_id: fulfillmentSet.service_zones[0].id,
+        service_zone_id: serviceZoneId,
         shipping_profile_id: shippingProfile.id,
         type: {
           label: "Express",
@@ -266,7 +303,7 @@ export default async function initial_data_seed({
             amount: 10,
           },
           {
-            region_id: region.id,
+            region_id: regionId,
             amount: 10,
           },
         ],
@@ -284,13 +321,14 @@ export default async function initial_data_seed({
         ],
       },
     ],
-  });
+    })
+  }
   logger.info("Finished seeding fulfillment data.");
 
   await linkSalesChannelsToStockLocationWorkflow(container).run({
     input: {
-      id: stockLocation.id,
-      add: [defaultSalesChannel.id],
+      id: stockLocationId,
+      add: [defaultSalesChannelId],
     },
   });
   logger.info("Finished seeding stock location data.");
@@ -302,25 +340,43 @@ export default async function initial_data_seed({
   ).run({
     input: {
       product_categories: [
-        {
-          name: "Shirts",
-          is_active: true,
-        },
-        {
-          name: "Sweatshirts",
-          is_active: true,
-        },
-        {
-          name: "Pants",
-          is_active: true,
-        },
-        {
-          name: "Merch",
-          is_active: true,
-        },
+        { name: "Trading Cards", is_active: true },
+        { name: "Figures", is_active: true },
+        { name: "Tabletop", is_active: true },
+        { name: "Collector Gear", is_active: true },
       ],
     },
-  });
+  })
+
+  const { result: productTypes } = await createProductTypesWorkflow(
+    container
+  ).run({
+    input: {
+      product_types: [
+        { value: "Trading Cards" },
+        { value: "Collectible Figures" },
+        { value: "Tabletop Accessories" },
+      ],
+    },
+  })
+
+  const { result: productTags } = await createProductTagsWorkflow(container).run(
+    {
+      input: {
+        product_tags: [
+          { value: "Anime" },
+          { value: "Booster Box" },
+          { value: "Booster Pack" },
+          { value: "Dice" },
+          { value: "Fantasy" },
+          { value: "Limited Edition" },
+          { value: "RPG" },
+          { value: "Sci-Fi" },
+          { value: "Starter Deck" },
+        ],
+      },
+    }
+  )
 
   const { result: productOptionsResult } = await createProductOptionsWorkflow(
     container
@@ -328,495 +384,175 @@ export default async function initial_data_seed({
     input: {
       product_options: [
         {
-          title: "Size",
-          values: ["S", "M", "L", "XL"],
-        },
-        {
-          title: "Color",
-          values: ["Black", "White"],
+          title: "Format",
+          values: [
+            "Booster Pack",
+            "Booster Box",
+            "Starter Deck",
+            "Figure",
+            "Dice Set",
+          ],
         },
       ],
     },
-  });
-  const sizeOption = productOptionsResult.find((o) => o.title === "Size")!;
-  const colorOption = productOptionsResult.find((o) => o.title === "Color")!;
+  })
+
+  const formatOption = productOptionsResult.find(
+    (option) => option.title === "Format"
+  )!
+  const categoryId = (name: string) =>
+    categoryResult.find((category) => category.name === name)!.id
+  const typeId = (value: string) =>
+    productTypes.find((type) => type.value === value)!.id
+  const tagIds = (...values: string[]) =>
+    productTags
+      .filter((tag) => values.includes(tag.value))
+      .map((tag) => tag.id)
+  const productSalesChannels = [{ id: defaultSalesChannelId }]
+  const prices = (eur: number, usd: number) => [
+    { amount: eur, currency_code: "eur" },
+    { amount: usd, currency_code: "usd" },
+  ]
 
   await createProductsWorkflow(container).run({
     input: {
       products: [
         {
-          title: "Medusa T-Shirt",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Shirts")!.id,
-          ],
+          title: "Arcane Clash Booster Pack",
           description:
-            "Reimagine the feeling of a classic T-shirt. With our cotton T-shirts, everyday essentials no longer have to be ordinary.",
-          handle: "t-shirt",
-          weight: 400,
+            "A sealed fantasy card-game booster packed with heroes, relics, and arcane surprises.",
+          handle: "arcane-clash-booster-pack",
+          category_ids: [categoryId("Trading Cards")],
+          type_id: typeId("Trading Cards"),
+          tag_ids: tagIds("Booster Pack", "Fantasy"),
+          weight: 30,
           status: ProductStatus.PUBLISHED,
           shipping_profile_id: shippingProfile.id,
-          images: [
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png",
-            },
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-back.png",
-            },
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-white-front.png",
-            },
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-white-back.png",
-            },
-          ],
-          options: [
-            { id: sizeOption.id },
-            { id: colorOption.id },
-          ],
+          options: [{ id: formatOption.id }],
           variants: [
             {
-              title: "S / Black",
-              sku: "SHIRT-S-BLACK",
-              options: {
-                Size: "S",
-                Color: "Black",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "S / White",
-              sku: "SHIRT-S-WHITE",
-              options: {
-                Size: "S",
-                Color: "White",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "M / Black",
-              sku: "SHIRT-M-BLACK",
-              options: {
-                Size: "M",
-                Color: "Black",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "M / White",
-              sku: "SHIRT-M-WHITE",
-              options: {
-                Size: "M",
-                Color: "White",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "L / Black",
-              sku: "SHIRT-L-BLACK",
-              options: {
-                Size: "L",
-                Color: "Black",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "L / White",
-              sku: "SHIRT-L-WHITE",
-              options: {
-                Size: "L",
-                Color: "White",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "XL / Black",
-              sku: "SHIRT-XL-BLACK",
-              options: {
-                Size: "XL",
-                Color: "Black",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "XL / White",
-              sku: "SHIRT-XL-WHITE",
-              options: {
-                Size: "XL",
-                Color: "White",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
+              title: "Booster Pack",
+              sku: "ARCANE-BOOSTER-PACK",
+              options: { Format: "Booster Pack" },
+              prices: prices(6, 7),
             },
           ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel.id,
-            },
-          ],
+          sales_channels: productSalesChannels,
         },
         {
-          title: "Medusa Sweatshirt",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Sweatshirts")!.id,
-          ],
+          title: "Dragon Vault Booster Box",
           description:
-            "Reimagine the feeling of a classic sweatshirt. With our cotton sweatshirt, everyday essentials no longer have to be ordinary.",
-          handle: "sweatshirt",
-          weight: 400,
+            "A factory-sealed display box created for collectors, draft nights, and treasure hunters.",
+          handle: "dragon-vault-booster-box",
+          category_ids: [categoryId("Trading Cards")],
+          type_id: typeId("Trading Cards"),
+          tag_ids: tagIds("Booster Box", "Fantasy", "Limited Edition"),
+          weight: 700,
           status: ProductStatus.PUBLISHED,
           shipping_profile_id: shippingProfile.id,
-          images: [
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/sweatshirt-vintage-front.png",
-            },
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/sweatshirt-vintage-back.png",
-            },
-          ],
-          options: [{ id: sizeOption.id }],
+          options: [{ id: formatOption.id }],
           variants: [
             {
-              title: "S",
-              sku: "SWEATSHIRT-S",
-              options: {
-                Size: "S",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "M",
-              sku: "SWEATSHIRT-M",
-              options: {
-                Size: "M",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "L",
-              sku: "SWEATSHIRT-L",
-              options: {
-                Size: "L",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "XL",
-              sku: "SWEATSHIRT-XL",
-              options: {
-                Size: "XL",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
+              title: "Booster Box",
+              sku: "DRAGON-VAULT-BOX",
+              options: { Format: "Booster Box" },
+              prices: prices(109, 119),
             },
           ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel.id,
-            },
-          ],
+          sales_channels: productSalesChannels,
         },
         {
-          title: "Medusa Sweatpants",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Pants")!.id,
-          ],
+          title: "Galactic Rivals Starter Deck",
           description:
-            "Reimagine the feeling of classic sweatpants. With our cotton sweatpants, everyday essentials no longer have to be ordinary.",
-          handle: "sweatpants",
-          weight: 400,
+            "A ready-to-play sci-fi deck with a balanced roster and everything needed for a first duel.",
+          handle: "galactic-rivals-starter-deck",
+          category_ids: [categoryId("Trading Cards")],
+          type_id: typeId("Trading Cards"),
+          tag_ids: tagIds("Starter Deck", "Sci-Fi"),
+          weight: 240,
           status: ProductStatus.PUBLISHED,
           shipping_profile_id: shippingProfile.id,
-          images: [
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/sweatpants-gray-front.png",
-            },
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/sweatpants-gray-back.png",
-            },
-          ],
-          options: [{ id: sizeOption.id }],
+          options: [{ id: formatOption.id }],
           variants: [
             {
-              title: "S",
-              sku: "SWEATPANTS-S",
-              options: {
-                Size: "S",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "M",
-              sku: "SWEATPANTS-M",
-              options: {
-                Size: "M",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "L",
-              sku: "SWEATPANTS-L",
-              options: {
-                Size: "L",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "XL",
-              sku: "SWEATPANTS-XL",
-              options: {
-                Size: "XL",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
+              title: "Starter Deck",
+              sku: "GALACTIC-STARTER-DECK",
+              options: { Format: "Starter Deck" },
+              prices: prices(24, 27),
             },
           ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel.id,
-            },
-          ],
+          sales_channels: productSalesChannels,
         },
         {
-          title: "Medusa Shorts",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Merch")!.id,
-          ],
+          title: "Crimson Ronin Collector Figure",
           description:
-            "Reimagine the feeling of classic shorts. With our cotton shorts, everyday essentials no longer have to be ordinary.",
-          handle: "shorts",
-          weight: 400,
+            "A display-ready anime-inspired warrior figure with detailed armor and a numbered base.",
+          handle: "crimson-ronin-collector-figure",
+          category_ids: [categoryId("Figures")],
+          type_id: typeId("Collectible Figures"),
+          tag_ids: tagIds("Anime", "Limited Edition"),
+          weight: 850,
           status: ProductStatus.PUBLISHED,
           shipping_profile_id: shippingProfile.id,
-          images: [
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/shorts-vintage-front.png",
-            },
-            {
-              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/shorts-vintage-back.png",
-            },
-          ],
-          options: [{ id: sizeOption.id }],
+          options: [{ id: formatOption.id }],
           variants: [
             {
-              title: "S",
-              sku: "SHORTS-S",
-              options: {
-                Size: "S",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "M",
-              sku: "SHORTS-M",
-              options: {
-                Size: "M",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "L",
-              sku: "SHORTS-L",
-              options: {
-                Size: "L",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "XL",
-              sku: "SHORTS-XL",
-              options: {
-                Size: "XL",
-              },
-              prices: [
-                {
-                  amount: 10,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 15,
-                  currency_code: "usd",
-                },
-              ],
+              title: "Figure",
+              sku: "CRIMSON-RONIN-FIGURE",
+              options: { Format: "Figure" },
+              prices: prices(84, 92),
             },
           ],
-          sales_channels: [
+          sales_channels: productSalesChannels,
+        },
+        {
+          title: "Dungeon Master Resin Figure",
+          description:
+            "A richly sculpted fantasy miniature designed for the shelf or the center of a campaign table.",
+          handle: "dungeon-master-resin-figure",
+          category_ids: [categoryId("Figures"), categoryId("Tabletop")],
+          type_id: typeId("Collectible Figures"),
+          tag_ids: tagIds("Fantasy", "RPG"),
+          weight: 320,
+          status: ProductStatus.PUBLISHED,
+          shipping_profile_id: shippingProfile.id,
+          options: [{ id: formatOption.id }],
+          variants: [
             {
-              id: defaultSalesChannel.id,
+              title: "Figure",
+              sku: "DUNGEON-MASTER-FIGURE",
+              options: { Format: "Figure" },
+              prices: prices(42, 46),
             },
           ],
+          sales_channels: productSalesChannels,
+        },
+        {
+          title: "Blacksmith Metal Dice Set",
+          description:
+            "A weighty seven-piece RPG dice set finished in obsidian black with antique-gold numbering.",
+          handle: "blacksmith-metal-dice-set",
+          category_ids: [categoryId("Tabletop"), categoryId("Collector Gear")],
+          type_id: typeId("Tabletop Accessories"),
+          tag_ids: tagIds("Dice", "RPG", "Fantasy"),
+          weight: 280,
+          status: ProductStatus.PUBLISHED,
+          shipping_profile_id: shippingProfile.id,
+          options: [{ id: formatOption.id }],
+          variants: [
+            {
+              title: "Dice Set",
+              sku: "BLACKSMITH-DICE-SET",
+              options: { Format: "Dice Set" },
+              prices: prices(39, 43),
+            },
+          ],
+          sales_channels: productSalesChannels,
         },
       ],
     },
-  });
-  logger.info("Finished seeding product data.");
+  })
+  logger.info("Finished seeding product data.")
 
   logger.info("Seeding inventory levels.");
 
@@ -824,16 +560,28 @@ export default async function initial_data_seed({
     entity: "inventory_item",
     fields: ["id"],
   });
+  const { data: existingInventoryLevels } = await query.graph({
+    entity: "inventory_level",
+    fields: ["inventory_item_id"],
+  })
+  const inventoryItemIdsWithLevels = new Set(
+    existingInventoryLevels.map((level) => level.inventory_item_id)
+  )
+  const newInventoryItems = inventoryItems.filter(
+    (item) => !inventoryItemIdsWithLevels.has(item.id)
+  )
 
-  await createInventoryLevelsWorkflow(container).run({
-    input: {
-      inventory_levels: inventoryItems.map((item) => ({
-        location_id: stockLocation.id,
-        stocked_quantity: 1000000,
-        inventory_item_id: item.id,
-      })),
-    },
-  });
+  if (newInventoryItems.length) {
+    await createInventoryLevelsWorkflow(container).run({
+      input: {
+        inventory_levels: newInventoryItems.map((item, index) => ({
+          location_id: stockLocationId,
+          stocked_quantity: index % 5 === 0 ? 0 : 25,
+          inventory_item_id: item.id,
+        })),
+      },
+    })
+  }
 
   logger.info("Finished seeding inventory levels data.");
 }

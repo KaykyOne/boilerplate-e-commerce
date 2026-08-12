@@ -82,10 +82,10 @@ const CartDropdown = ({
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
           <LocalizedClientLink
-            className="flex h-10 items-center rounded-full px-3 font-medium hover:bg-brand/5"
+            className="flex h-10 items-center rounded-[var(--radius-sm)] px-3 font-medium text-brand-contrast transition hover:bg-brand-contrast/10"
             href="/cart"
             data-testid="nav-cart-link"
-          >{`Bag (${totalItems})`}</LocalizedClientLink>
+          >{`Cart (${totalItems})`}</LocalizedClientLink>
         </PopoverButton>
         <Transition
           show={cartDropdownOpen}
@@ -205,7 +205,7 @@ const CartDropdown = ({
             ) : (
               <div>
                 <div className="flex py-16 flex-col gap-y-4 items-center justify-center">
-                  <div className="bg-gray-900 text-small-regular flex items-center justify-center w-6 h-6 rounded-full text-white">
+                  <div className="bg-brand text-small-regular flex items-center justify-center w-6 h-6 rounded-full text-brand-contrast">
                     <span>0</span>
                   </div>
                   <span>Your shopping bag is empty.</span>

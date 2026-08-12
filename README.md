@@ -137,6 +137,8 @@ Um produto só aparece corretamente quando está publicado, pertence ao canal de
 | `JWT_SECRET` | Assinatura de tokens |
 | `COOKIE_SECRET` | Assinatura de cookies |
 | `ADMIN_PATH` | Caminho público do painel |
+| `FILE_UPLOAD_DIR` | Diretório persistente de uploads |
+| `FILE_BACKEND_URL` | URL pública usada nas imagens enviadas |
 
 ### Storefront
 

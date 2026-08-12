@@ -14,7 +14,7 @@ export default function QuickAdd({ product }: { product: HttpTypes.StoreProduct 
   const inStock = variant && (!variant.manage_inventory || variant.allow_backorder || (variant.inventory_quantity ?? 0) > 0)
 
   if (!variant) {
-    return <LocalizedClientLink href={`/products/${product.handle}`} className="inline-flex h-10 w-full items-center justify-center rounded-[var(--radius-control)] border border-brand-border bg-brand-surface text-xs font-semibold uppercase tracking-[0.1em] transition hover:border-brand">Choose options</LocalizedClientLink>
+    return <LocalizedClientLink href={`/products/${product.handle}`} className="inline-flex h-10 w-full items-center justify-center rounded-[var(--radius-control)] border border-brand bg-brand-surface text-[10px] font-bold uppercase tracking-[0.1em] transition hover:bg-brand hover:text-brand-contrast">Choose options</LocalizedClientLink>
   }
 
   return (
@@ -26,7 +26,7 @@ export default function QuickAdd({ product }: { product: HttpTypes.StoreProduct 
         await addToCart({ variantId: variant.id, quantity: 1, countryCode })
         setIsAdding(false)
       }}
-      className="h-10 w-full rounded-[var(--radius-control)] bg-brand text-xs font-semibold uppercase tracking-[0.1em] text-brand-contrast transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
+      className="h-10 w-full rounded-[var(--radius-control)] bg-brand text-[10px] font-bold uppercase tracking-[0.1em] text-brand-contrast transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {isAdding ? "Adding…" : inStock ? "Add to cart" : "Out of stock"}
     </button>

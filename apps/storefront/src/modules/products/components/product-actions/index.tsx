@@ -164,7 +164,7 @@ export default function ProductActions({
         <ProductPrice product={product} variant={selectedVariant} />
 
         <div className="flex items-center justify-between py-3">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-muted">Quantity</p><p className="mt-1 text-xs text-brand-muted">{!selectedVariant ? "Select options to check availability" : inStock ? "Available" : "Currently unavailable"}</p></div>
+          <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-muted">Quantity</p><p className={inStock ? "mt-1 text-xs font-semibold text-brand-success" : "mt-1 text-xs text-brand-muted"}>{!selectedVariant ? "Select options to check availability" : inStock ? "In stock" : "Currently unavailable"}</p></div>
           <div className="flex h-11 items-center rounded-[var(--radius-control)] border border-brand-border bg-brand-surface">
             <button type="button" className="h-full w-10 text-lg" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label="Decrease quantity">−</button>
             <span className="min-w-8 text-center text-sm font-semibold">{quantity}</span>

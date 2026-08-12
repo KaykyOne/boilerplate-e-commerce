@@ -38,7 +38,7 @@ const SideMenu = ({ regions, locales, currentLocale, categories = [] }: SideMenu
               <span className="flex flex-col gap-1.5" aria-hidden="true"><span className="h-px w-5 bg-current" /><span className="h-px w-5 bg-current" /></span>
               <span className="sr-only">Menu</span>
             </Popover.Button>
-            {open && <div className="fixed inset-0 z-50 bg-black/30" onClick={close} data-testid="side-menu-backdrop" />}
+            {open && <div className="fixed inset-0 z-50 bg-brand-overlay/40" onClick={close} data-testid="side-menu-backdrop" />}
             <Transition show={open} as={Fragment} enter="transition duration-200" enterFrom="-translate-x-full" enterTo="translate-x-0" leave="transition duration-150" leaveFrom="translate-x-0" leaveTo="-translate-x-full">
               <PopoverPanel className="fixed inset-y-0 left-0 z-[51] flex w-[min(88vw,25rem)] flex-col text-sm text-brand-foreground">
                 <div data-testid="nav-menu-popup" className="flex h-full flex-col justify-between border-r border-brand-border bg-brand-background p-7 shadow-2xl">

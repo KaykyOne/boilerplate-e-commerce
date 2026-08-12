@@ -46,7 +46,9 @@ WORKDIR /server
 
 COPY --from=builder --chown=node:node /server/apps/backend/.medusa/server ./
 COPY --chown=node:node docker/backend-entrypoint.sh /usr/local/bin/backend-entrypoint
-RUN chmod +x /usr/local/bin/backend-entrypoint
+RUN chmod +x /usr/local/bin/backend-entrypoint \
+  && mkdir -p /server/static \
+  && chown node:node /server/static
 
 USER node
 EXPOSE 9000
