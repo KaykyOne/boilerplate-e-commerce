@@ -26,10 +26,10 @@ export default function TransferRequestForm() {
     <div className="flex flex-col gap-y-4 w-full">
       <div className="grid sm:grid-cols-2 items-center gap-x-8 gap-y-4 w-full">
         <div className="flex flex-col gap-y-1">
-          <Heading level="h3" className="!text-sm font-semibold text-neutral-950">
+          <Heading level="h3" className="font-display !text-xl text-brand-foreground">
             Order transfers
           </Heading>
-          <p className="text-small-regular text-neutral-500">
+          <p className="text-sm leading-6 text-brand-muted">
             Can&apos;t find the order you are looking for?
             <br /> Connect an order to your account.
           </p>
@@ -43,7 +43,7 @@ export default function TransferRequestForm() {
             <SubmitButton
               variant="secondary"
               size="small"
-              className="w-fit whitespace-nowrap self-end"
+              className="w-fit whitespace-nowrap self-end border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-brand-accent-foreground"
             >
               Request transfer
             </SubmitButton>
@@ -56,14 +56,14 @@ export default function TransferRequestForm() {
         </Text>
       )}
       {showSuccess && (
-        <div className="flex justify-between p-4 bg-neutral-50 shadow-borders-base w-full self-stretch items-center">
+        <div className="flex w-full self-stretch items-center justify-between border border-brand-success/40 bg-brand-success/10 p-4 text-brand-foreground">
           <div className="flex gap-x-2 items-center">
             <CheckCircleMiniSolid className="w-4 h-4 text-emerald-500" />
             <div className="flex flex-col gap-y-1">
-              <Text className="text-medim-pl text-neutral-950">
+              <Text className="font-semibold text-brand-foreground">
                 Transfer for order {state.order?.id} requested
               </Text>
-              <Text className="text-base-regular text-neutral-600">
+              <Text className="text-sm text-brand-muted">
                 Transfer request email sent to {state.order?.email}
               </Text>
             </div>

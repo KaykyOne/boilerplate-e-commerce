@@ -15,23 +15,37 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
   children,
 }) => {
   return (
-    <div className="flex-1 small:py-12" data-testid="account-page">
-      <div className="flex-1 content-container h-full max-w-5xl mx-auto bg-white flex flex-col">
-        <div className="grid grid-cols-1  small:grid-cols-[240px_1fr] py-12">
-          <div>{customer && <AccountNav customer={customer} />}</div>
-          <div className="flex-1">{children}</div>
-        </div>
-        <div className="flex flex-col small:flex-row items-end justify-between small:border-t border-gray-200 py-12 gap-8">
-          <div>
-            <h3 className="text-xl-semi mb-4">Got questions?</h3>
-            <span className="txt-medium">
-              You can find frequently asked questions and answers on our
-              customer service page.
-            </span>
+    <div className="flex-1 py-8 small:py-12" data-testid="account-page">
+      <div className="content-container max-w-5xl">
+        <div className="forge-frame bg-brand-surface px-5 py-8 small:px-10 small:py-12">
+          <div
+            className={
+              customer
+                ? "grid grid-cols-1 gap-10 small:grid-cols-[240px_1fr] small:gap-12"
+                : "flex min-h-[360px] items-center justify-center"
+            }
+          >
+            {customer && (
+              <aside className="border-brand-border/70 small:border-r small:pr-8">
+                <AccountNav customer={customer} />
+              </aside>
+            )}
+            <div className={customer ? "min-w-0 text-brand-foreground" : "w-full max-w-md text-brand-foreground"}>
+              {children}
+            </div>
           </div>
-          <div>
+          <div className="mt-12 flex flex-col items-start justify-between gap-6 border-t border-brand-border/70 pt-8 small:flex-row small:items-end">
+            <div>
+              <p className="eyebrow mb-2">Suporte</p>
+              <h3 className="font-display text-2xl text-brand-foreground">
+                Precisa de ajuda?
+              </h3>
+              <span className="mt-2 block max-w-lg text-sm leading-6 text-brand-muted">
+                Encontre respostas e orientações na nossa central de atendimento.
+              </span>
+            </div>
             <UnderlineLink href="/customer-service">
-              Customer Service
+              Atendimento ao cliente
             </UnderlineLink>
           </div>
         </div>

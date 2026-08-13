@@ -45,10 +45,10 @@ const AccountInfo = ({
     <div className="text-small-regular" data-testid={dataTestid}>
       <div className="flex items-end justify-between">
         <div className="flex flex-col">
-          <span className="uppercase text-ui-fg-base">{label}</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-brand-muted">{label}</span>
           <div className="flex items-center flex-1 basis-0 justify-end gap-x-4">
             {typeof currentInfo === "string" ? (
-              <span className="font-semibold" data-testid="current-info">{currentInfo}</span>
+              <span className="font-semibold text-brand-foreground" data-testid="current-info">{currentInfo}</span>
             ) : (
               currentInfo
             )}
@@ -122,7 +122,7 @@ const AccountInfo = ({
             <div className="flex items-center justify-end mt-2">
               <Button
                 isLoading={pending}
-                className="w-full small:max-w-[140px]"
+                className="w-full !bg-brand-accent !text-brand-accent-foreground hover:!bg-[#e2bf67] small:max-w-[140px]"
                 type="submit"
                 data-testid="save-button"
               >

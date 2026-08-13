@@ -20,16 +20,17 @@ const Register = ({ setCurrentView }: Props) => {
       className="max-w-sm flex flex-col items-center"
       data-testid="register-page"
     >
-      <h1 className="text-large-semi uppercase mb-6">
+      <p className="eyebrow mb-3">Área do colecionador</p>
+      <h1 className="font-display text-center text-3xl text-brand-foreground mb-3">
         Become a Medusa Store Member
       </h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-4">
+      <p className="text-center text-base-regular text-brand-muted mb-6">
         Create your Medusa Store Member profile, and get access to an enhanced
         shopping experience.
       </p>
       {message?.state === "verification_required" && (
         <div
-          className="w-full mb-4 text-center text-base-regular text-ui-fg-base bg-ui-bg-subtle border border-ui-border-base rounded-rounded p-4"
+          className="w-full mb-4 rounded-[var(--radius-control)] border border-brand-accent/40 bg-brand-accent/10 p-4 text-center text-base-regular text-brand-foreground"
           data-testid="register-verification-message"
         >
           We sent a verification link to <strong>{message.email}</strong>.
@@ -80,11 +81,11 @@ const Register = ({ setCurrentView }: Props) => {
           error={message?.state === "error" ? message.error : null}
           data-testid="register-error"
         />
-        <span className="text-center text-ui-fg-base text-small-regular mt-6">
+        <span className="text-center text-brand-muted text-small-regular mt-6">
           By creating an account, you agree to Medusa Store&apos;s{" "}
           <LocalizedClientLink
             href="/content/privacy-policy"
-            className="underline"
+            className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:text-brand-foreground"
           >
             Privacy Policy
           </LocalizedClientLink>{" "}
@@ -97,15 +98,15 @@ const Register = ({ setCurrentView }: Props) => {
           </LocalizedClientLink>
           .
         </span>
-        <SubmitButton className="w-full mt-6" data-testid="register-button">
+        <SubmitButton className="w-full mt-6 !bg-brand-accent !text-brand-accent-foreground hover:!bg-[#e2bf67]" data-testid="register-button">
           Join
         </SubmitButton>
       </form>
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
+      <span className="text-center text-brand-muted text-small-regular mt-6">
         Already a member?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.SIGN_IN)}
-          className="underline"
+          className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:text-brand-foreground"
         >
           Sign in
         </button>

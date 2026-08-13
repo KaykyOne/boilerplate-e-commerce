@@ -17,13 +17,14 @@ const Login = ({ setCurrentView }: Props) => {
       className="max-w-sm w-full flex flex-col items-center"
       data-testid="login-page"
     >
-      <h1 className="text-large-semi uppercase mb-6">Welcome back</h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-8">
+      <p className="eyebrow mb-3">Área do colecionador</p>
+      <h1 className="font-display text-3xl text-brand-foreground mb-3">Welcome back</h1>
+      <p className="text-center text-base-regular text-brand-muted mb-8">
         Sign in to access an enhanced shopping experience.
       </p>
       {message?.state === "verification_required" && (
         <div
-          className="w-full mb-6 text-center text-base-regular text-ui-fg-base bg-ui-bg-subtle border border-ui-border-base rounded-rounded p-4"
+          className="w-full mb-6 rounded-[var(--radius-control)] border border-brand-accent/40 bg-brand-accent/10 p-4 text-center text-base-regular text-brand-foreground"
           data-testid="login-verification-message"
         >
           We sent a verification link to <strong>{message.email}</strong>.
@@ -54,15 +55,15 @@ const Login = ({ setCurrentView }: Props) => {
           error={message?.state === "error" ? message.error : null}
           data-testid="login-error-message"
         />
-        <SubmitButton data-testid="sign-in-button" className="w-full mt-6">
+        <SubmitButton data-testid="sign-in-button" className="w-full mt-6 !bg-brand-accent !text-brand-accent-foreground hover:!bg-[#e2bf67]">
           Sign in
         </SubmitButton>
       </form>
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
+      <span className="text-center text-brand-muted text-small-regular mt-6">
         Not a member?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
-          className="underline"
+          className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:text-brand-foreground"
           data-testid="register-button"
         >
           Join us

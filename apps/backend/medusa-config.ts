@@ -21,7 +21,7 @@ const redisUrl =
 const fileUploadDir =
   nodeEnv === "development"
     ? process.env.MEDUSA_DEV_FILE_UPLOAD_DIR ||
-      resolve(process.cwd(), "static")
+    resolve(process.cwd(), "static")
     : process.env.FILE_UPLOAD_DIR || "/server/static"
 const fileBackendUrl =
   nodeEnv === "development"
@@ -73,5 +73,21 @@ module.exports = defineConfig({
         ],
       },
     },
+    {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/payment-stripe",
+            id: "stripe",
+            options: {
+              apiKey: process.env.STRIPE_API_KEY,
+              webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+              capture: true,
+            },
+          },
+        ],
+      },
+    }
   ],
 })

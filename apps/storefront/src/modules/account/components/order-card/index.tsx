@@ -24,11 +24,11 @@ const OrderCard = ({ order }: OrderCardProps) => {
   }, [order])
 
   return (
-    <div className="bg-white flex flex-col" data-testid="order-card">
-      <div className="uppercase text-large-semi mb-1">
+    <div className="flex flex-col rounded-[var(--radius-card)] border border-brand-border/70 bg-brand-surface-muted p-5" data-testid="order-card">
+      <div className="mb-2 font-display text-xl text-brand-accent">
         #<span data-testid="order-display-id">{order.display_id}</span>
       </div>
-      <div className="flex items-center divide-x divide-gray-200 text-small-regular text-ui-fg-base">
+      <div className="flex items-center divide-x divide-brand-border/70 text-sm text-brand-muted">
         <span className="pr-2" data-testid="order-created-at">
           {new Date(order.created_at).toDateString()}
         </span>
@@ -42,7 +42,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
           numberOfLines > 1 ? "items" : "item"
         }`}</span>
       </div>
-      <div className="grid grid-cols-2 small:grid-cols-4 gap-4 my-4">
+      <div className="my-5 grid grid-cols-2 gap-4 small:grid-cols-4">
         {order.items?.slice(0, 3).map((i) => {
           return (
             <div
@@ -51,9 +51,9 @@ const OrderCard = ({ order }: OrderCardProps) => {
               data-testid="order-item"
             >
               <Thumbnail thumbnail={i.thumbnail} images={[]} size="full" />
-              <div className="flex items-center text-small-regular text-ui-fg-base">
+              <div className="flex items-center text-sm text-brand-muted">
                 <span
-                  className="text-ui-fg-base font-semibold"
+                  className="font-semibold text-brand-foreground"
                   data-testid="item-title"
                 >
                   {i.title}
@@ -66,16 +66,16 @@ const OrderCard = ({ order }: OrderCardProps) => {
         })}
         {numberOfProducts > 4 && (
           <div className="w-full h-full flex flex-col items-center justify-center">
-            <span className="text-small-regular text-ui-fg-base">
+            <span className="text-sm text-brand-muted">
               + {numberOfLines - 4}
             </span>
-            <span className="text-small-regular text-ui-fg-base">more</span>
+            <span className="text-sm text-brand-muted">more</span>
           </div>
         )}
       </div>
       <div className="flex justify-end">
         <LocalizedClientLink href={`/account/orders/details/${order.id}`}>
-          <Button data-testid="order-details-link" variant="secondary">
+          <Button className="border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-brand-accent-foreground" data-testid="order-details-link" variant="secondary">
             See details
           </Button>
         </LocalizedClientLink>
